@@ -15,7 +15,7 @@ Agrego un script:
 Ahora ejecuto ese comando,pero ojo con la sintaxis:
 npm run tsc -- --init <- necesito ese -- por que si no el --init iría al npm run y no al tsc(siempre puedo usar tsc --init en vez de un script con dos entradas posibles)Sea como sea es importante entender que hace el -- en los comandos.
 
-TIP: crear el tsconfig.json de esta manera es altamente recomendable ya que me dejará todos los comentarios con lo que hace cada propiedad configurable
+TIP: crear el tsconfig.json de esta manera es altamente recomendable ya que me dejará todos los comentarios con lo que hace cada propiedad configurable,aunque también puedo copiarlo de otro proyecto.
 
 Le cambio el outDir a ./build.Fijate como lo deja:
   "noUnusedLocals": true,                           /* Enable error reporting when a local variables aren't read. */
@@ -59,9 +59,9 @@ IMPORTANTE: en este ejemplo sé que ese guión representa a la request,pero tamb
 
 						COMPILANDO LA APP
 
-Si ejecuto el comando que configuramos npm run tsc el compilador de typescript compilará a js todo mi código y lo dejará en /build tal como he configurado.Sin embargo puedo agilizar este proceso(y debería).
+Si ejecuto el comando que configuramos npm run tsc el compilador de typescript compilará a js todo mi código y lo dejará en /build tal como he configurado.Despues podria ejecutar con node el javascript.Sin embargo puedo agilizar este proceso(y debería).
 
-Si bien en Node instalaría nodemon para esto, en TS tengo la libreria ts-node-dev,que es una mezcla de ts-node(un compilador en modo watch) y nodemon(además me ejecuta la app y actualiza los cambios,recompilando)
+Si bien en Node instalaría nodemon para esto, en TS tengo la libreria ts-node-dev,que es una mezcla de ts-node(que compila y ejecuta pero no se queda en modo watch para recompilar) y nodemon(además de me ejecuta la app también actualiza los cambios,recompilando)
 npm i ts-node-dev -DE
 
 Ya puedo crear el comando que apunte al index.ts en vez de al .js:
@@ -74,7 +74,8 @@ NOTA: recuerda que import express from 'express' es ESModules mientras que const
 IMPORTANTE: se recomienda tener la menor cantidad de lógica dentro de las rutas.Hay que sacarla a services(y no controllers??).
 En cuanto a la mock data usamos un .json,pero fijate que TS por defecto no sabe interpretarlo,tengo que activar la capacidad de hacerlo
 
-Recuerda tipar el JSON:
+Debemos crear el tipado para el JSON,incluso usaremos enums o types(fijate que si uso types no tengo acceso en runtime pero si uso una enum si tengo acceso,más adelante será clave no haber usado una enum aqui):
+
 export type Weather =
   | "sunny"
   | "rainy"
@@ -92,9 +93,90 @@ export interface DiaryEntry {
   visibility : Visibility;
   comment : string;
 }
-IMPORTANTE: fijate que incluso tuvimos que usar aserción de tipos:
+
+IMPORTANTE: fijate que incluso tuvimos que usar aserción de tipos para tipar el JSON:
 
 /* a esto se le llama aserción de tipos.Implica decirle al programa que una variable tiene que funcionar de una forma concreta,en este caso como un DiaryEntry[],lo cual puede hacer. */
 export const getEntries = () => diaryData as Array<DiaryEntry>;	
 Obviamente diaryData debe poder hacer ese cambio de tipos.
-Minuto 31
+
+TIP: hay una cadena de prioridad a la hora de importar un file sin extensión:
+import diaryData from './diaries'; 
+primero buscará por .tsx | .ts | .node | .js | .json (entiendo que importa el json lo último).
+NOTA: En ECMAScript con ESModules es necesario especificar la extensión pero no en TS.
+
+			USANDO UN LINTER PARA TS CON EXPRESS
+
+La recomendación de Midu es usar la libreria ts-standard directamente, la cual va a usar eslint por debajo pero viene ya con todo configurado:
+>npm i ts-standard -DE
+ * Falta agregar esto al package.json:
+
+"eslintConfig": {
+  "parserOptions": {
+    "project": "./tsconfig.json"
+   },
+  "extends": [
+    "./node_modules/ts-standard/eslintrc.json"
+   ]
+},
+	
+			UTILITY TYPES
+
+Hay dos utility types que es muy recomendable dominar.Bien,imaginemos que tengo estos dos servicios,los cuales consultan la misma data pero un omite una simple propiedad de DiaryEntry:
+export const getEntries = (): DiaryEntry[] => diaries
+
+export const getEntriesWithoutSensitiveInfo = (): NonSensitiveDiaryEntry[] => diaries
+
+Fijate que la solución a simple vista parece crear otra interfaz
+export interface DiaryEntry {
+  id: number
+  date: string
+  weather: Weather
+  visibility: Visibility
+  comment: string
+}
+export interface NonSensitiveDiaryEntry {
+  id: number
+  date: string
+  weather: Weather
+  visibility: Visibility
+}
+
+Sin embargo,esto es una mala práctica,porque estoy repitiendo código(debo usar el mínimo número de tipos posibles).Para solucionar esto podria usar el utility type Pick<T,values> 
+export type NonSensitiveDiaryEntry = Pick<DiaryEntry, 'id' | 'date' | 'weather' | 'visibility'>
+
+Sin embargo es aún más rápido usar Omit<T,values> y omitir 1 campo a añadir todos menos uno:
+export type NonSensitiveDiaryEntry = Omit<DiaryEntry, 'comment'>
+IMPORTANTE: sólo funciona con types,no con interfaces.Además,esto solo es el tipado,no va a filtrar la respuesta quitando la propiedad comment:
+
+export const getEntriesWithoutSensitiveInfo = (): NonSensitiveDiaryEntry[] =>
+  diaries.map(({ id, date, weather, visibility }) => ({
+    id,
+    date,
+    weather,
+    visibility
+  }))
+
+NOTA: Midu recomienda usar el unary operator:
+router.get('/:id', (req, res: Response) => {
+  const diary = diaryServices.findById(Number(req.params.id)) <- usar +req.params.id
+
+Fijate como al añadir una entrada lo mejor es buscar el máximo de entre los ids y sumarle 1:
+
+export const addEntry = (
+  date: string,
+  weather: Weather,
+  visibility: Visibility,
+  comment: string
+): DiaryEntry => {
+  const newDiaryEntry: DiaryEntry = {
+    id: Math.max(...diaries.map((d) => d.id)) + 1,
+    date,
+    weather,
+    visibility,
+    comment
+  }
+  diaries.push(newDiaryEntry)
+  return newDiaryEntry
+}
+minuto 1h04m

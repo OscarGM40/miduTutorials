@@ -1,17 +1,20 @@
 export type Weather =
-  | "sunny"
-  | "rainy"
-  | "cloudy"
-  | "windy"
-  | "snowy"
-  | "foggy"
-  | "stormy";
-export type Visibility = "great" | "good" | "ok" | "poor";
+  | 'sunny'
+  | 'rainy'
+  | 'cloudy'
+  | 'windy'
+  | 'snowy'
+  | 'foggy'
+  | 'stormy'
+export type Visibility = 'great' | 'good' | 'ok' | 'poor'
 
 export interface DiaryEntry {
-  id : number;
-  date : string;
-  weather : Weather;
-  visibility : Visibility;
-  comment : string;
+  id: number
+  date: string
+  weather: Weather
+  visibility: Visibility
+  comment: string
 }
+// export type NonSensitiveDiaryEntry = Pick<DiaryEntry, 'id' | 'date' | 'weather' | 'visibility'>
+export type NonSensitiveDiaryEntry = Omit<DiaryEntry, 'comment'>
+export type NewDiaryEntry = Omit<DiaryEntry, 'id'>

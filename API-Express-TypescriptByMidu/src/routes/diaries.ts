@@ -1,12 +1,31 @@
-import express, { Response } from "express";
-const router = express.Router();
+import express, { Response } from 'express'
+import * as diaryServices from '../services/diaryServices'
 
-router.get("/", (_req, res: Response) => {
-  res.send("Fetching all entry diaries");
-});
+const router = express.Router()
 
-router.post("/", (_req, res) => {
-  res.send('Saving a diary entry');
-});
+router.get('/', (_req, res: Response) => {
+  res.send(diaryServices.getEntries())
+})
 
-export default router;
+router.get('/:id', (req, res: Response) => {
+  const diary = diaryServices.findById(Number(req.params.id))
+  if (diary !== null) {
+    res.send(diary)
+  } else {
+    res.sendStatus(404)
+  }
+})
+
+router.post('/', (req, res) => {
+  const { date, weather, visibility, comment } = req.body
+  const newDiaryEntry = diaryServices.addDiaryEntry({
+    date,
+    weather,
+    visibility,
+    comment
+  })
+
+  res.json(newDiaryEntry)
+})
+
+export default router
