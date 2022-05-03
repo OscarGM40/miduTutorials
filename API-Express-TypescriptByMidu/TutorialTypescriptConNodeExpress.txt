@@ -179,4 +179,98 @@ export const addEntry = (
   diaries.push(newDiaryEntry)
   return newDiaryEntry
 }
-minuto 1h04m
+
+		TYPESCRIPT VALIDACIONES Y LOS CONTRATOS ESTÁTICOS
+
+Bien,ya podria ir a Postman o Thunder Client y ver las entradas del diario e incluso añadir otras.Fijate que yo sí sé que es lo que debo mandar:
+{
+  "date":"2021-06-06",
+  "weather":"sunny",
+  "visibility":"good",
+  "comment":"I need to improve my English"
+}
+Y si hago un GET veré que me ha añadido esto:
+{
+    "id": 5,
+    "date": "2021-06-06",
+    "weather": "sunny",
+    "visibility": "good",
+    "comment": "I need to improve my English"
+}
+Bien,pero fijate la lógica del controlador:
+router.post('/', (req, res) => {
+  const { date, weather, visibility, comment } = req.body
+  const newDiaryEntry = diaryServices.addDiaryEntry({
+    date,
+    weather,
+    visibility,
+    comment
+  })
+
+  ¿Que tipo es date,weather,...? Realmente son tipo any.Puedo añadir cualquier cosa:
+{
+    "date":true,
+    "weather":"kikos",
+    "visibility":"ou yeah",
+    "comment":"I need to improve my English"
+}
+Y veo que lo guarda.Debo tener muy claro hasta donde llega Typescript.Typescript es como un linter,no puede saber que ocurre fuera del IDE.Hay que hacer las validaciones,pues.
+NOTA: normalmente usaré express-validator
+NOTA: fijate que ni siquiera tiene el código en un try catch.Esto es fundamental para la validación custom que vamos a hacer.
+Lo primero es crear una función parser:
+ const newDiaryEntry = toNewDiaryEntry(date, weather, visibility, comment);
+
+ Empezamos con la validacion para un campo string:
+const parseComment = (commentFromRequest: any): string => {
+  if (commentFromRequest !== null || !isString(commentFromRequest)) {
+    throw new Error('Invalid or missing comment')
+  } else {
+    return commentFromRequest
+  }
+}
+
+const isString = (value: any): boolean => typeof value === 'string' || value instanceof String
+
+Ahora para un campo Date.Fijate en el uso de Boolean(Date.parse(dateFromRequest) que me dice si es una Date:
+const isDate = (date: string): boolean => Boolean(Date.parse(date))
+const parseDate = (dateFromRequest: any): string => {
+  if ( dateFromRequest !== null || !isString(dateFromRequest) || !isDate(dateFromRequest)
+  ) {
+    throw new Error('Invalid or missing date')
+  }
+  return dateFromRequest
+}
+
+Bien,llega la parte interesante y es comprobar que sea un Weather correcto.Pudiera parecer que puedo hacer esto y sería correcto en principio:
+const isWeather = (weather: string): boolean =>
+  ['sunny', 'rainy', 'cloudy', 'windy', 'snowy', 'foggy', 'stormy'].includes( weather)
+
+Sin embargo,esto es una mala práctica,pues estoy repitiendo todo el type,y encima ese type es una Source of Truth,es decir que podria cambiar el dia de mañana a más opciones y tendría que venir aqui,la mantenibilidad y resiliencia se ve afectada.Solución: UNA ENUM
+NOTA: el tema es que no sólo puedo usar una enum en Typescript,sino que también me crea una constante que puedo usar en runtime,en javascript.Typescript me dará al compilar un objeto al que puedo acceder.Obviamente con un type no hace una kk,por eso la enum.
+
+Asi pues voy a poder chequear con la enum,mas concretamente con sus values:
+const isWeather = (weather: any): boolean => Object.values(Weather).includes(weather)
+Fijate que Object.values(enum).includes(value) devuelve un boolean.Esto es clave
+
+const toNewDiaryEntry = (object: any): NewDiaryEntry => ({
+  weather: parseWeather(object.weather),
+  visibility: parseVisibility(object.visibility),
+  date: parseDate(object.date),
+  comment: parseComment(object.comment)
+})
+
+Ahora si el controlador es mucho mejor:
+
+router.post('/', (req, res) => {
+  try {
+    const newDiaryEntry = toNewDiaryEntry(req.body)
+    const addedDiaryEntry = diaryServices.addDiaryEntry(newDiaryEntry)
+    res.json(addedDiaryEntry)
+  } catch (e) {
+    res.status(400).send(e)
+  }
+})
+IMPORTANTE:fijate que el types.d.ts o cualquier .d.ts no puede tener enums,solo types e interfacespues una enum no es una definición
+
+RESUMEN: typescript no valida nada en runtime ni de los datos que introducirá el cliente,etc.
+radioButton son redondos,checkBox es cuadrado
