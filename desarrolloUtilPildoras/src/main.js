@@ -1,43 +1,23 @@
-/* El objeto Promise tiene varios métodos que permiten el manejo de la gestión de multiples promesas(si es exitosa una,todas,...) */
+console.clear();
 
+const listaNumeros = [12, 21, 38,45,56,78];
+// puedo acceder a los elementos de un array,saltandome posiciones intermedias
+// también puedo usar el operador rest para agrupar el resto de elementos
+const [,,pos3, ...resto] = listaNumeros
 
-const promise1 = fetch('https://rickandmortyapi.com/api/character/?name=cowboy%20rick')
-  .then(response => response.json())
-  .then(data => data.results[0].name);
+// para objetos es muy parecido,solo que se usan llaves y no son argumentos posicionales,van por el nombre de la propiedad,no por su posición
+const persona = {
+    nombre: 'Juan',
+    edad: 23,
+  }
+  // puedo renombrar la propiedad desestructurada con 'prop:newName'
+const { nombre: name, edad } = persona
+// de nuevo ,puedo sacar algunas propiedades y dejar el resto
+const { nombre,...restoObj } = persona
+// hay trucos útiles para hacer un swap de variables,como meterlas en un array y sacarlas con los nombres cambiados
 
-const promise2 = fetch(
-  "https://rickandmortyapi.com/api/character/?name=cult%20leader%20morty"
-)
-  .then((response) => response.json())
-  // .then((data) => data.results[0].name);
-  .then((data) => { throw new Error("Error en la promesa 2") });
+let num1 = "juan";
+let num3 = "perez";
 
-const promise3 = fetch(
-  "https://rickandmortyapi.com/api/character/?name=daron%20jefferson"
-)
-  .then((response) => response.json())
-  .then((data) => data.results[0].name);
-
-/* UNO: Promise.All() <- NOTA: todos estos metodos son promesas(con grupos de promesas en su interior).Bien,tal como su nombre indica, Promise.All es una promesa que sólo se resolverá exitosamente si TODAS sus promesas internas se resuelven exitosamente.En cuanto haya una que no se resuelve Promise.All se resolverá por el error.Lanza todas en paralelo.  */
-
-/* Promise.all([promise1, promise2, promise3])
-  .then(allData => allData.forEach(console.log)) */
-
-// Obviamente Promise.All se usa cuando me interesa que se resuelvan todas,cuando quiero que todo el grupo se resuelva(promesas dependientes)
-
-/* DOS: Promise.allSettled: en este caso retorna el resultado de la resolución de las promesas,pero el resultado viene en un objeto con un formato específico {status:fullfilled,value:data | status: fullfilled ,reason:msg}.Si resuelve bien será status + value, sino status+reason */
-
-/* Promise.allSettled([promise1, promise2, promise3])
-  .then(allData => allData.forEach(console.log))  */
-
-/* TRES: Promise.race(): race va a devolver el resultado de la promesa que se resuelva más rápido(ignorando las demás) */
-
-/* Promise.race([promise1, promise2, promise3])
- .then(firstToResolve => console.log(firstToResolve)) */
-//  Este método es muy útil cuando tengo múltiples APIs que me dan información similar
-
-/* CUATRO: Promise.any() funciona de manera similar a race,pero si la primera que se resuelve da error espera a que se resuelva la siguiente.Es decir que espera por la primera promesa exitosa de un grupo,a diferencia de race que simplemente espera por la primera */
-
-Promise.any([promise1, promise2, promise3])
- .then(firstSucessPromiseResolved => console.log(firstSucessPromiseResolved))
-// De nuevo este método es muy útil cuando tenga varias APIs con la misma info,y además quiera gestionar los errores,normalmente usaré any en vez de race
+[num3,num1] = [num1,num3];
+console.log(num1,num3) // dará 4,2

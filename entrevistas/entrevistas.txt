@@ -1,0 +1,11 @@
+Source: https://www.youtube.com/watch?v=QyVL2ZpQRpA
+
+Scope: es el lugar donde puede vivir una variable,método,etc(Importante,puedo ver el scope en VSCode mediante unos tube | )
+
+Prototype: todo objeto tiene un prototype,al que puedo acceder y modificarlo,añadir más métodos.Ya se dejó de utilizar y se usa POO y clases.
+
+Tripe Igual vs Doble Igual: el triple igual compara contenido y tipo, mientras que el doble igual solo compara contenido,haciendo ciertas conversiones por detrás
+
+var-let-const: var es una variable global,tiene problemas de hoisting y scope(ya que var tiene scope global)
+
+map-filter-reduce: recuerda que la programación funcional no muta el arreglo original,asi que ninguno de esto mutará el array,sino que devuelve otro
