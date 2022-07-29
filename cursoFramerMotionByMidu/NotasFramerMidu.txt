@@ -1,0 +1,52 @@
+				CURSO FRAMER MOTION BY MIDU
+
+Source: https://www.youtube.com/watch?v=4HnLIAX0EoM&ab_channel=midulive
+
+Framer es una aplicación que permite crear productos interactivos.Es competencia de Figma.Es colaborativa,igual que Figma.
+Tienen una libreria para animar/interaccionar con HTML,que se llama Framer Motion.
+Es bastante estable y madura,ellos la catalogan como production-ready por ello.
+Es totalmente gratis.
+
+Permite tener animaciones declarativas,usando una sintaxis super simple.Esto va genial con todo,sobre todo React.
+
+Fijate que le mete Ids a los elementos,asi sabe como animar conjuntos de Cards,por ejemplo.
+
+También usa Server Side Rendering,con lo que desde el inicio cada elemento ya tiene los estilos que necesita,haciendo todo muy fluido y sin fallos.
+
+			CREANDO UN PROYECTO E INSTALANDO LA LIBRERIA	
+
+Simplemente creamos un proyecto con vite e instalamos la libreria:
+>npm init vite@latest | yarn create vite | npm create vite ...
+>yarn add framer-motion
+
+Simplemente es traerse motion por destructuring y aplicarlo a la tag que quiera:
+
+import { motion } from 'framer-motion'
+
+function App() {
+
+  return (
+    <div className="">
+      <motion.h1 animate={{y:100}}>Hello World</motion.h1>
+    </div> 
+  )
+}
+Tendré que decirle como animarse también.No puede ser más sencillo.Fijate que también podemos fijar un estado inicial con el atributo initial:
+
+   <div className="">
+      <motion.h1
+        initial={{
+          color:'#ff0000',
+        }}
+        animate={{
+          y: 100,
+          color: "#fff",
+        }}
+      >
+        Hello World
+      </motion.h1>
+    </div>
+
+m20
+
+
